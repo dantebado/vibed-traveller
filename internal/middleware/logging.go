@@ -10,12 +10,8 @@ import (
 // RequestLoggingMiddleware creates a custom middleware for detailed request logging
 func RequestLoggingMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Get request ID
-		requestID := GetRequestID(c)
-
 		// Log request start
 		slog.InfoContext(c.Request.Context(), "HTTP Request Started",
-			"request_id", requestID,
 			"method", c.Request.Method,
 			"path", c.Request.URL.Path,
 			"query", c.Request.URL.RawQuery,
@@ -38,7 +34,6 @@ func RequestLoggingMiddleware() gin.HandlerFunc {
 
 		// Log request completion
 		slog.InfoContext(c.Request.Context(), "HTTP Request Completed",
-			"request_id", requestID,
 			"method", c.Request.Method,
 			"path", c.Request.URL.Path,
 			"query", c.Request.URL.RawQuery,
@@ -54,7 +49,6 @@ func RequestLoggingMiddleware() gin.HandlerFunc {
 		// Log errors with additional context
 		if status >= 400 {
 			slog.ErrorContext(c.Request.Context(), "HTTP Request Error",
-				"request_id", requestID,
 				"method", c.Request.Method,
 				"path", c.Request.URL.Path,
 				"status", status,

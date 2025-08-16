@@ -12,11 +12,8 @@ func main() {
 	// Load configuration
 	cfg := config.Load()
 
-	// Setup structured logging with configured level
-	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: cfg.GetSlogLevel(),
-	}))
-	slog.SetDefault(logger)
+	// Log level
+	slog.SetLogLoggerLevel(cfg.GetSlogLevel())
 
 	// Setup routes
 	r := routes.SetupRoutes()
