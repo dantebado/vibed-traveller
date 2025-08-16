@@ -1,31 +1,18 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"os"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 )
 
 type HealthResponse struct {
 	Status    string    `json:"status"`
 	Timestamp time.Time `json:"timestamp"`
 	Service   string    `json:"service"`
-}
-
-func healthHandler(w http.ResponseWriter, r *http.Request) {
-	response := HealthResponse{
-		Status:    "healthy",
-		Timestamp: time.Now(),
-		Service:   "vibed-traveller-backend",
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
 }
 
 func main() {
@@ -35,20 +22,30 @@ func main() {
 		port = "8080"
 	}
 
-	r := mux.NewRouter()
+	// Set Gin to release mode for production
+	gin.SetMode(gin.ReleaseMode)
+
+	// Create Gin router
+	r := gin.Default()
 
 	// Health check endpoint
-	r.HandleFunc("/health", healthHandler).Methods("GET")
+	r.GET("/health", func(c *gin.Context) {
+		response := HealthResponse{
+			Status:    "healthy",
+			Timestamp: time.Now(),
+			Service:   "vibed-traveller-backend",
+		}
+		c.JSON(http.StatusOK, response)
+	})
 
 	// Root endpoint
-	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
 			"message": "Welcome to Vibed Traveller Backend",
 			"version": "1.0.0",
 		})
-	}).Methods("GET")
+	})
 
 	log.Printf("Starting server on :%s", port)
-	log.Fatal(http.ListenAndServe(":"+port, r))
+	log.Fatal(r.Run(":" + port))
 }

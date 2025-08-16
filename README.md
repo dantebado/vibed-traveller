@@ -4,7 +4,7 @@ A fullstack travel application with a Go backend and modern frontend.
 
 ## Backend
 
-The backend is built with Go and provides a simple HTTP API.
+The backend is built with Go using the Gin framework and provides a simple HTTP API.
 
 ### Prerequisites
 
