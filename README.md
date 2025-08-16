@@ -84,7 +84,15 @@ The application is containerized for easy deployment and development.
 
 ### Configuration
 
-The application uses simple environment variable configuration.
+The application uses annotation-based configuration with struct tags to automatically map environment variables to configuration fields.
+
+#### Configuration Structure
+
+```go
+type Config struct {
+    Port string `env:"PORT" default:"8080"`
+}
+```
 
 #### Environment Variables
 
@@ -96,9 +104,27 @@ The application uses simple environment variable configuration.
 # Use default port (8080)
 go run cmd/main.go
 
-# Use custom port
+# Use custom port via environment variable
 PORT=3000 go run cmd/main.go
+
+# Use .env file
+cp .env.example .env
+# Edit .env file to set PORT=3000
+go run cmd/main.go
 ```
+
+#### Priority Order
+
+1. **Environment variables** (highest priority)
+2. **.env file** (if exists)
+3. **Default values** (lowest priority)
+
+#### Benefits of Annotation-Based Configuration
+
+- **Self-Documenting**: Struct tags show exactly which env vars map to which fields
+- **Type Safe**: Automatic type conversion for strings, ints, and bools
+- **Extensible**: Easy to add new configuration fields with appropriate tags
+- **Maintainable**: Clear mapping between code and environment variables
 
 ### Docker Commands
 
