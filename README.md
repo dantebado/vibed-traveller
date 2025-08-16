@@ -90,13 +90,15 @@ The application uses annotation-based configuration with struct tags to automati
 
 ```go
 type Config struct {
-    Port string `env:"PORT" default:"8080"`
+    Port     string `env:"PORT" default:"8080"`
+    LogLevel string `env:"LOG_LEVEL" default:"info"`
 }
 ```
 
 #### Environment Variables
 
 - `PORT` - Server port (defaults to 8080)
+- `LOG_LEVEL` - Log level (defaults to info)
 
 #### Usage
 
@@ -107,9 +109,12 @@ go run cmd/main.go
 # Use custom port via environment variable
 PORT=3000 go run cmd/main.go
 
+# Use custom log level
+LOG_LEVEL=debug go run cmd/main.go
+
 # Use .env file
 cp .env.example .env
-# Edit .env file to set PORT=3000
+# Edit .env file to set PORT=3000 and LOG_LEVEL=debug
 go run cmd/main.go
 ```
 
@@ -125,6 +130,15 @@ go run cmd/main.go
 - **Type Safe**: Automatic type conversion for strings, ints, and bools
 - **Extensible**: Easy to add new configuration fields with appropriate tags
 - **Maintainable**: Clear mapping between code and environment variables
+
+#### Logging
+
+The application uses Go's built-in `slog` package for structured logging with configurable levels:
+
+- **Available Levels**: `debug`, `info`, `warn`, `error`
+- **Structured Output**: JSON-like key-value pairs for easy parsing
+- **Configurable**: Set log level via `LOG_LEVEL` environment variable
+- **Request Logging**: Automatic logging of HTTP requests with IP and user agent
 
 ### Docker Commands
 

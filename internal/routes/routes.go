@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -33,18 +34,26 @@ func SetupRoutes() *gin.Engine {
 
 // healthHandler handles the health check endpoint
 func healthHandler(c *gin.Context) {
+	slog.Debug("Health check requested", "ip", c.ClientIP(), "user_agent", c.GetHeader("User-Agent"))
+
 	response := HealthResponse{
 		Status:    "healthy",
 		Timestamp: time.Now(),
 		Service:   "vibed-traveller-backend",
 	}
+
+	slog.Info("Health check completed", "status", "healthy", "ip", c.ClientIP())
 	c.JSON(http.StatusOK, response)
 }
 
 // rootHandler handles the root endpoint
 func rootHandler(c *gin.Context) {
+	slog.Debug("Root endpoint requested", "ip", c.ClientIP(), "user_agent", c.GetHeader("User-Agent"))
+
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Welcome to Vibed Traveller Backend",
 		"version": "1.0.0",
 	})
+
+	slog.Info("Root endpoint accessed", "ip", c.ClientIP())
 }

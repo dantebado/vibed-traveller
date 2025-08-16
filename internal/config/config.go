@@ -1,6 +1,7 @@
 package config
 
 import (
+	"log/slog"
 	"os"
 	"reflect"
 	"strconv"
@@ -10,7 +11,8 @@ import (
 
 // Config holds the configuration for the application
 type Config struct {
-	Port string `env:"PORT" default:"8080"`
+	Port     string `env:"PORT" default:"8080"`
+	LogLevel string `env:"LOG_LEVEL" default:"info"`
 }
 
 // Load loads configuration from environment variables and .env file
@@ -84,4 +86,25 @@ func (c *Config) setFieldValue(field reflect.Value, value string) {
 // GetPort returns the configured port
 func (c *Config) GetPort() string {
 	return c.Port
+}
+
+// GetLogLevel returns the configured log level
+func (c *Config) GetLogLevel() string {
+	return c.LogLevel
+}
+
+// GetSlogLevel returns the slog.Level for the configured log level
+func (c *Config) GetSlogLevel() slog.Level {
+	switch c.LogLevel {
+	case "debug":
+		return slog.LevelDebug
+	case "info":
+		return slog.LevelInfo
+	case "warn":
+		return slog.LevelWarn
+	case "error":
+		return slog.LevelError
+	default:
+		return slog.LevelInfo
+	}
 }
