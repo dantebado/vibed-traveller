@@ -3,6 +3,7 @@ package main
 import (
 	"log/slog"
 	"os"
+	"vibed-traveller/internal/middleware"
 
 	"vibed-traveller/internal/config"
 	"vibed-traveller/internal/routes"
@@ -12,8 +13,11 @@ func main() {
 	// Load configuration
 	cfg := config.Load()
 
-	// Log level
+	// Logger
 	slog.SetLogLoggerLevel(cfg.GetSlogLevel())
+	base := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{AddSource: false})
+	logger := slog.New(middleware.New(base))
+	slog.SetDefault(logger)
 
 	// Setup routes
 	r := routes.SetupRoutes()

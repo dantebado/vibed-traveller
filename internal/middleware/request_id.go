@@ -1,9 +1,9 @@
 package middleware
 
 import (
-	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"log/slog"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,8 +28,9 @@ func RequestIDMiddleware() gin.HandlerFunc {
 
 		// Add request ID to gin context
 		c.Set(RequestIDKey, requestID)
-		ctx := context.WithValue(c.Request.Context(), RequestIDKey, requestID)
-		c.Request = c.Request.WithContext(ctx)
+		c.Request = c.Request.WithContext(
+			Add(c.Request.Context(), slog.String(RequestIDKey, requestID)),
+		)
 
 		// Add request ID to response headers
 		c.Header(RequestIDHeader, requestID)
