@@ -141,6 +141,18 @@ The application uses Go's built-in `slog` package for structured logging with co
 - **Global Middleware**: Automatic logging of all HTTP requests with comprehensive details
 - **Request Details**: Method, path, status, latency, IP, user agent, content length
 - **Error Logging**: Special error logging for 4xx and 5xx responses
+- **Request Tracing**: Unique request ID links all logs for a single request
+- **Context-Aware**: Uses `slog.InfoContext` and `slog.ErrorContext` for proper request linking
+
+#### Request ID System
+
+Every HTTP request gets a unique identifier for tracing:
+
+- **Automatic Generation**: 16-character hex string if not provided
+- **Custom Support**: Accepts `X-Request-ID` header for external tracing
+- **Response Header**: Returns `X-Request-ID` in response headers
+- **Log Linking**: All logs for a request share the same request ID
+- **Debugging**: Easy to trace requests through the entire system
 
 ### Docker Commands
 

@@ -7,28 +7,22 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// LoggingMiddleware creates a middleware that logs all HTTP requests
-func LoggingMiddleware() gin.HandlerFunc {
-	return gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
-		// Log structured information about the request
-		slog.Info("HTTP Request",
-			"method", param.Method,
-			"path", param.Path,
-			"status", param.StatusCode,
-			"latency", param.Latency,
-			"client_ip", param.ClientIP,
-			"user_agent", param.Request.UserAgent(),
-			"timestamp", param.TimeStamp,
-		)
-
-		// Return empty string since we're handling logging ourselves
-		return ""
-	})
-}
-
 // RequestLoggingMiddleware creates a custom middleware for detailed request logging
 func RequestLoggingMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// Get request ID
+		requestID := GetRequestID(c)
+
+		// Log request start
+		slog.InfoContext(c.Request.Context(), "HTTP Request Started",
+			"request_id", requestID,
+			"method", c.Request.Method,
+			"path", c.Request.URL.Path,
+			"query", c.Request.URL.RawQuery,
+			"client_ip", c.ClientIP(),
+			"user_agent", c.Request.UserAgent(),
+		)
+
 		// Start timer
 		start := time.Now()
 
@@ -42,8 +36,9 @@ func RequestLoggingMiddleware() gin.HandlerFunc {
 		status := c.Writer.Status()
 		statusText := getStatusText(status)
 
-		// Log request details
-		slog.Info("HTTP Request Completed",
+		// Log request completion
+		slog.InfoContext(c.Request.Context(), "HTTP Request Completed",
+			"request_id", requestID,
 			"method", c.Request.Method,
 			"path", c.Request.URL.Path,
 			"query", c.Request.URL.RawQuery,
@@ -58,7 +53,8 @@ func RequestLoggingMiddleware() gin.HandlerFunc {
 
 		// Log errors with additional context
 		if status >= 400 {
-			slog.Error("HTTP Request Error",
+			slog.ErrorContext(c.Request.Context(), "HTTP Request Error",
+				"request_id", requestID,
 				"method", c.Request.Method,
 				"path", c.Request.URL.Path,
 				"status", status,

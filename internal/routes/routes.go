@@ -1,11 +1,13 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"vibed-traveller/internal/middleware"
+
+	"github.com/gin-gonic/gin"
 )
 
 // HealthResponse represents the health check response
@@ -22,6 +24,9 @@ func SetupRoutes() *gin.Engine {
 
 	// Create Gin router (without default middleware)
 	r := gin.New()
+
+	// Add request ID middleware first
+	r.Use(middleware.RequestIDMiddleware())
 
 	// Add custom logging middleware
 	r.Use(middleware.RequestLoggingMiddleware())
@@ -40,6 +45,8 @@ func SetupRoutes() *gin.Engine {
 
 // healthHandler handles the health check endpoint
 func healthHandler(c *gin.Context) {
+	slog.InfoContext(c.Request.Context(), "Health check endpoint hit")
+
 	response := HealthResponse{
 		Status:    "healthy",
 		Timestamp: time.Now(),
