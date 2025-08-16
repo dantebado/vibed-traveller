@@ -2,11 +2,11 @@
 
 # Run the application
 run:
-	go run main.go
+	go run cmd/main.go
 
 # Build the application
 build:
-	go build -o bin/vibed-traveller main.go
+	go build -o bin/vibed-traveller cmd/main.go
 
 # Run tests
 test:

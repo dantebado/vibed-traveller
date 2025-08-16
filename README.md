@@ -4,7 +4,7 @@ A fullstack travel application with a Go backend and modern frontend.
 
 ## Backend
 
-The backend is built with Go using the Gin framework and provides a simple HTTP API.
+The backend is built with Go using the Gin framework and provides a simple HTTP API. The project follows Go best practices with a clean, modular structure and simple configuration management.
 
 ### Prerequisites
 
@@ -19,7 +19,7 @@ The backend is built with Go using the Gin framework and provides a simple HTTP 
 
 2. Run the server:
    ```bash
-   go run main.go
+   go run cmd/main.go
    ```
 
 3. The server will start on port 8080
@@ -82,9 +82,23 @@ The application is containerized for easy deployment and development.
    docker-compose down
    ```
 
-### Environment Variables
+### Configuration
+
+The application uses simple environment variable configuration.
+
+#### Environment Variables
 
 - `PORT` - Server port (defaults to 8080)
+
+#### Usage
+
+```bash
+# Use default port (8080)
+go run cmd/main.go
+
+# Use custom port
+PORT=3000 go run cmd/main.go
+```
 
 ### Docker Commands
 
@@ -94,6 +108,31 @@ The application is containerized for easy deployment and development.
 - `make docker-compose-down` - Stop Docker Compose services
 - `make docker-compose-logs` - View logs
 - `make docker-clean` - Clean up Docker resources
+
+## Project Structure
+
+```
+vibed-traveller/
+├── cmd/
+│   └── main.go          # Application entry point
+├── internal/
+│   ├── config/
+│   │   └── config.go    # Configuration management
+│   └── routes/
+│       └── routes.go    # HTTP route definitions
+├── bin/                  # Build artifacts
+├── Dockerfile           # Container configuration
+├── docker-compose.yml   # Docker Compose setup
+├── Makefile             # Build and development commands
+└── README.md            # This file
+```
+
+### Package Organization
+
+- **`cmd/main.go`**: Application entry point that orchestrates the startup
+- **`internal/config`**: Configuration management and environment variable handling
+- **`internal/routes`**: HTTP route definitions and handlers using Gin framework
+- **`bin/`**: Compiled binary output directory
 
 ## Frontend
 
