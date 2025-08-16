@@ -138,7 +138,9 @@ The application uses Go's built-in `slog` package for structured logging with co
 - **Available Levels**: `debug`, `info`, `warn`, `error`
 - **Structured Output**: JSON-like key-value pairs for easy parsing
 - **Configurable**: Set log level via `LOG_LEVEL` environment variable
-- **Request Logging**: Automatic logging of HTTP requests with IP and user agent
+- **Global Middleware**: Automatic logging of all HTTP requests with comprehensive details
+- **Request Details**: Method, path, status, latency, IP, user agent, content length
+- **Error Logging**: Special error logging for 4xx and 5xx responses
 
 ### Docker Commands
 
@@ -172,6 +174,7 @@ vibed-traveller/
 - **`cmd/main.go`**: Application entry point that orchestrates the startup
 - **`internal/config`**: Configuration management and environment variable handling
 - **`internal/routes`**: HTTP route definitions and handlers using Gin framework
+- **`internal/middleware`**: HTTP middleware for logging, authentication, etc.
 - **`bin/`**: Compiled binary output directory
 
 ## Frontend
