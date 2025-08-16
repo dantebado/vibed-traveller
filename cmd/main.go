@@ -14,8 +14,8 @@ func main() {
 	cfg := config.Load()
 
 	// Logger
-	slog.SetLogLoggerLevel(cfg.GetSlogLevel())
-	base := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{AddSource: false})
+	level := cfg.GetSlogLevel()
+	base := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: level, AddSource: false})
 	logger := slog.New(middleware.New(base))
 	slog.SetDefault(logger)
 
