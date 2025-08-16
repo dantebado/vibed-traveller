@@ -1,0 +1,41 @@
+# Archivo de configuración de Air
+
+# Ruta del binario compilado (se crea en cada build)
+bin = "tmp/main"
+
+# Directorio raíz del proyecto
+root = "."
+
+# Directorio temporal para builds
+tmp_dir = "tmp"
+
+[build]
+  # Comando para compilar el main que está en cmd/main.go
+  cmd = "go build -o ./tmp/main ./cmd/main.go"
+
+  # Directorios a observar
+  include_dir = ["cmd", "internal"]
+
+  # Extensiones que Air vigila
+  include_ext = ["go", "tpl", "tmpl", "html"]
+
+  # Ignorar vendor
+  exclude_dir = ["vendor"]
+
+  # Tiempo de debounce (ms)
+  delay = 1000
+
+[log]
+  # Colores y timestamps en logs
+  color = "true"
+  timestamp = "true"
+
+[run]
+  # Comando a ejecutar tras compilar
+  cmd = "./tmp/main"
+
+  # Directorio donde corre el binario
+  dir = "."
+
+  # Archivos a observar para reinicio
+  watch_dir = ["."]

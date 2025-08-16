@@ -4,7 +4,7 @@ A fullstack travel application with a Go backend and modern frontend.
 
 ## Backend
 
-The backend is built with Go using the Gin framework and provides a simple HTTP API.
+The backend is built with Go using the Gin framework and provides a simple HTTP API. The project follows Go best practices with a clean, modular structure and simple configuration management.
 
 ### Prerequisites
 
@@ -19,7 +19,7 @@ The backend is built with Go using the Gin framework and provides a simple HTTP 
 
 2. Run the server:
    ```bash
-   go run main.go
+   go run cmd/main.go
    ```
 
 3. The server will start on port 8080
@@ -82,9 +82,77 @@ The application is containerized for easy deployment and development.
    docker-compose down
    ```
 
-### Environment Variables
+### Configuration
+
+The application uses annotation-based configuration with struct tags to automatically map environment variables to configuration fields.
+
+#### Configuration Structure
+
+```go
+type Config struct {
+    Port     string `env:"PORT" default:"8080"`
+    LogLevel string `env:"LOG_LEVEL" default:"info"`
+}
+```
+
+#### Environment Variables
 
 - `PORT` - Server port (defaults to 8080)
+- `LOG_LEVEL` - Log level (defaults to info)
+
+#### Usage
+
+```bash
+# Use default port (8080)
+go run cmd/main.go
+
+# Use custom port via environment variable
+PORT=3000 go run cmd/main.go
+
+# Use custom log level
+LOG_LEVEL=debug go run cmd/main.go
+
+# Use .env file
+cp .env.example .env
+# Edit .env file to set PORT=3000 and LOG_LEVEL=debug
+go run cmd/main.go
+```
+
+#### Priority Order
+
+1. **Environment variables** (highest priority)
+2. **.env file** (if exists)
+3. **Default values** (lowest priority)
+
+#### Benefits of Annotation-Based Configuration
+
+- **Self-Documenting**: Struct tags show exactly which env vars map to which fields
+- **Type Safe**: Automatic type conversion for strings, ints, and bools
+- **Extensible**: Easy to add new configuration fields with appropriate tags
+- **Maintainable**: Clear mapping between code and environment variables
+
+#### Logging
+
+The application uses Go's built-in `slog` package for structured logging with configurable levels:
+
+- **Available Levels**: `debug`, `info`, `warn`, `error`
+- **Structured Output**: JSON-like key-value pairs for easy parsing
+- **Configurable**: Set log level via `LOG_LEVEL` environment variable
+- **Global Middleware**: Automatic logging of all HTTP requests with comprehensive details
+- **Request Details**: Method, path, status, latency, IP, user agent, content length
+- **Error Logging**: Special error logging for 4xx and 5xx responses
+- **Request Tracing**: Unique request ID links all logs for a single request
+- **Context-Aware**: Uses `slog.InfoContext` and `slog.ErrorContext` for proper request linking
+
+#### Request ID System
+
+Every HTTP request gets a unique identifier for tracing:
+
+- **Automatic Generation**: 16-character hex string if not provided
+- **Custom Support**: Accepts `X-Request-ID` header for external tracing
+- **Response Header**: Returns `X-Request-ID` in response headers
+- **Log Linking**: All logs for a request share the same request ID
+- **Debugging**: Easy to trace requests through the entire system
 
 ### Docker Commands
 
@@ -94,6 +162,32 @@ The application is containerized for easy deployment and development.
 - `make docker-compose-down` - Stop Docker Compose services
 - `make docker-compose-logs` - View logs
 - `make docker-clean` - Clean up Docker resources
+
+## Project Structure
+
+```
+vibed-traveller/
+├── cmd/
+│   └── main.go          # Application entry point
+├── internal/
+│   ├── config/
+│   │   └── config.go    # Configuration management
+│   └── routes/
+│       └── routes.go    # HTTP route definitions
+├── bin/                  # Build artifacts
+├── Dockerfile           # Container configuration
+├── docker-compose.yml   # Docker Compose setup
+├── Makefile             # Build and development commands
+└── README.md            # This file
+```
+
+### Package Organization
+
+- **`cmd/main.go`**: Application entry point that orchestrates the startup
+- **`internal/config`**: Configuration management and environment variable handling
+- **`internal/routes`**: HTTP route definitions and handlers using Gin framework
+- **`internal/middleware`**: HTTP middleware for logging, authentication, etc.
+- **`bin/`**: Compiled binary output directory
 
 ## Frontend
 
