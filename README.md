@@ -44,6 +44,57 @@ Expected response:
 }
 ```
 
+## Docker
+
+The application is containerized for easy deployment and development.
+
+### Building and Running with Docker
+
+1. **Build the Docker image:**
+   ```bash
+   make docker-build
+   # or
+   docker build -t vibed-traveller-backend .
+   ```
+
+2. **Run with Docker:**
+   ```bash
+   make docker-run
+   # or
+   docker run -p 8080:8080 -e PORT=8080 vibed-traveller-backend
+   ```
+
+3. **Using Docker Compose (recommended):**
+   ```bash
+   # Start the service
+   make docker-compose-up
+   # or
+   docker-compose up -d
+
+   # View logs
+   make docker-compose-logs
+   # or
+   docker-compose logs -f
+
+   # Stop the service
+   make docker-compose-down
+   # or
+   docker-compose down
+   ```
+
+### Environment Variables
+
+- `PORT` - Server port (defaults to 8080)
+
+### Docker Commands
+
+- `make docker-build` - Build Docker image
+- `make docker-run` - Run container directly
+- `make docker-compose-up` - Start with Docker Compose
+- `make docker-compose-down` - Stop Docker Compose services
+- `make docker-compose-logs` - View logs
+- `make docker-clean` - Clean up Docker resources
+
 ## Frontend
 
 Coming soon...
