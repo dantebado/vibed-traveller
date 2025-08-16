@@ -3,6 +3,8 @@ package routes
 import (
 	"log/slog"
 	"net/http"
+	"os"
+	"path/filepath"
 	"time"
 
 	"vibed-traveller/internal/middleware"
@@ -37,8 +39,26 @@ func SetupRoutes() *gin.Engine {
 	// Health check endpoint
 	r.GET("/health", healthHandler)
 
-	// Root endpoint
-	r.GET("/", rootHandler)
+	// Serve static files from dist directory
+	r.Static("/static", "./dist/static")
+
+	// Serve the React app for all other routes (SPA routing)
+	r.NoRoute(func(c *gin.Context) {
+		// Try to serve the requested file first
+		filePath := filepath.Join("./dist", c.Request.URL.Path)
+		if _, err := os.Stat(filePath); err == nil {
+			c.File(filePath)
+			return
+		}
+
+		// If file doesn't exist, serve index.html for SPA routing
+		c.File("./dist/index.html")
+	})
+
+	// Root endpoint - serve the React app
+	r.GET("/", func(c *gin.Context) {
+		c.File("./dist/index.html")
+	})
 
 	return r
 }
@@ -54,12 +74,4 @@ func healthHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response)
-}
-
-// rootHandler handles the root endpoint
-func rootHandler(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Welcome to Vibed Traveller Backend",
-		"version": "1.0.0",
-	})
 }
