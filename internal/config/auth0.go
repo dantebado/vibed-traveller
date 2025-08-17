@@ -1,7 +1,6 @@
 package config
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -11,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/auth0/go-jwt-middleware/v2/jwks"
+	"github.com/auth0/go-jwt-middleware/v2/validator"
 	"github.com/gin-gonic/gin"
 )
 
@@ -149,8 +150,16 @@ func AuthMiddleware(config *Config) gin.HandlerFunc {
 			return
 		}
 
+		createdValidator, err := CreateValidator(config)
+		if err != nil {
+			slog.ErrorContext(c.Request.Context(), "Failed to create JWT validator", slog.Any("error", err))
+			c.Redirect(http.StatusTemporaryRedirect, loginURL)
+			c.Abort()
+			return
+		}
+
 		// Validate JWT expiration
-		err := ValidateJWT(token, config)
+		_, err = createdValidator.ValidateToken(c.Request.Context(), token)
 		if err != nil {
 			slog.ErrorContext(c.Request.Context(), "Invalid token", slog.Any("error", err))
 			// If token is invalid or expired, redirect to login
@@ -176,48 +185,47 @@ func AuthMiddleware(config *Config) gin.HandlerFunc {
 	}
 }
 
-func ValidateJWT(token string, config *Config) error {
-	// Parse JWT and validate expiration
-	// Split the token into parts (header.payload.signature)
-	parts := strings.Split(token, ".")
-	if len(parts) != 3 {
-		return fmt.Errorf("invalid JWT format: expected 3 parts, got %d", len(parts))
+// CreateValidator creates a JWT validator for token validation
+func CreateValidator(config *Config) (*validator.Validator, error) {
+	// Validate Auth0 configuration first
+	if err := validateAuth0Config(config); err != nil {
+		return nil, err
 	}
 
-	// Decode the payload (second part)
-	payload := parts[1]
-	// Add padding if needed for base64 decoding
-	if len(payload)%4 != 0 {
-		payload += strings.Repeat("=", 4-len(payload)%4)
-	}
-
-	// Decode base64
-	decodedPayload, err := base64.URLEncoding.DecodeString(payload)
+	// Parse and validate the issuer URL
+	parsedIssuerURL, err := parseAndValidateAuth0URL(config.GetAuth0IssuerURL())
 	if err != nil {
-		return fmt.Errorf("failed to decode JWT payload: %v", err)
+		return nil, fmt.Errorf("invalid Auth0 issuer URL: %v", err)
 	}
 
-	// Parse the JSON payload
-	var claims struct {
-		Exp int64 `json:"exp"`
-		Iat int64 `json:"iat"`
-	}
-	if err := json.Unmarshal(decodedPayload, &claims); err != nil {
-		return fmt.Errorf("failed to parse JWT claims: %v", err)
+	expectedIssuer := fmt.Sprintf("https://%s/", parsedIssuerURL.Host)
+
+	provider := jwks.NewCachingProvider(parsedIssuerURL, 5*time.Minute)
+	validator, err := validator.New(
+		provider.KeyFunc,
+		validator.RS256,
+		expectedIssuer,
+		[]string{config.GetAuth0Audience()},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to set up the jwt validator: %v", err)
 	}
 
-	// Check if token is expired
-	now := time.Now().Unix()
-	if claims.Exp > 0 && now > claims.Exp {
-		return fmt.Errorf("JWT token is expired: exp=%d, now=%d", claims.Exp, now)
+	return validator, nil
+}
+
+// parseAndValidateAuth0URL parses and validates an Auth0 URL
+func parseAndValidateAuth0URL(urlString string) (*url.URL, error) {
+	parsedURL, err := url.Parse(urlString)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse URL '%s': %v", urlString, err)
 	}
 
-	// Check if token is issued in the future (clock skew tolerance)
-	if claims.Iat > 0 && now < claims.Iat-300 { // 5 minutes tolerance
-		return fmt.Errorf("JWT token issued in the future: iat=%d, now=%d", claims.Iat, now)
+	if parsedURL.Host == "" {
+		return nil, fmt.Errorf("invalid URL format: '%s'. Expected format: 'https://your-tenant.auth0.com/'", urlString)
 	}
 
-	return nil
+	return parsedURL, nil
 }
 
 // GenerateAuth0LoginURL generates the Auth0 login URL with the current page as the return URL
