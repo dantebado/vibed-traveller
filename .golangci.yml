@@ -1,15 +1,20 @@
 version: "2"
-linters:
-  exclusions:
-    generated: lax
-    paths:
-      - third_party$
-      - builtin$
-      - examples$
+
 formatters:
+  enable:
+    - goimports
+
+linters:
+  default: none
+  enable:
+    - revive
+    - errcheck
+    - gocognit
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+
   exclusions:
-    generated: lax
-    paths:
-      - third_party$
-      - builtin$
-      - examples$
+    presets:
+      - comments
