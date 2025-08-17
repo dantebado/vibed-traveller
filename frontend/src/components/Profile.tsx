@@ -17,7 +17,7 @@ const Profile: React.FC = () => {
       setLoading(true);
       const status = await api.getAuthStatus();
       setAuthStatus(status);
-      setUserProfile(status.user);
+      if (status.user) setUserProfile(status.user);
     } catch (err) {
       setError('Failed to check authentication status');
       console.error('Auth check failed:', err);
