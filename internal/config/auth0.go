@@ -1,7 +1,6 @@
 package config
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -11,8 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/auth0/go-jwt-middleware/v2/jwks"
-	"github.com/auth0/go-jwt-middleware/v2/validator"
 	"github.com/gin-gonic/gin"
 )
 
@@ -83,7 +80,7 @@ func SetAuthTokenCookie(c *gin.Context, token string) {
 		AuthTokenCookiePath,
 		"",
 		AuthTokenCookieSecure,
-		true, // httpOnly
+		false,
 	)
 }
 
@@ -127,11 +124,6 @@ func AuthMiddleware(config *Config) gin.HandlerFunc {
 		panic(err.Error())
 	}
 
-	createdValidator, err := CreateValidator(config)
-	if err != nil {
-		panic(fmt.Sprintf("Failed to set up the jwt createdValidator: %v", err))
-	}
-
 	return func(c *gin.Context) {
 		// Extract token from Authorization header or cookie
 		var token string
@@ -139,27 +131,16 @@ func AuthMiddleware(config *Config) gin.HandlerFunc {
 		// First try to get token from Authorization header
 		authHeader := c.GetHeader("Authorization")
 		if authHeader != "" && strings.HasPrefix(authHeader, "Bearer ") {
+			slog.InfoContext(c.Request.Context(), "Extracted token from Authorization header")
 			token = strings.TrimPrefix(authHeader, "Bearer ")
 		}
 		if cookieToken, err := GetAuthTokenFromCookie(c); err == nil {
+			slog.InfoContext(c.Request.Context(), "Extracted token from cookie")
 			token = cookieToken
 		}
 
 		if token == "" {
-			// Redirect to login instead of returning 401
-			loginURL := GenerateAuth0LoginURL(config, c.Request.URL.String())
-			c.Redirect(http.StatusTemporaryRedirect, loginURL)
-			c.Abort()
-			return
-		}
-
-		// Validate the token
-		_, err := createdValidator.ValidateToken(context.Background(), token)
-		if err != nil {
-			// Clear the invalid cookie if it exists
-			ClearAuthTokenCookie(c)
-
-			// Redirect to login instead of returning 401
+			slog.InfoContext(c.Request.Context(), "No token found in header or cookie, redirecting to login")
 			loginURL := GenerateAuth0LoginURL(config, c.Request.URL.String())
 			c.Redirect(http.StatusTemporaryRedirect, loginURL)
 			c.Abort()
@@ -169,10 +150,13 @@ func AuthMiddleware(config *Config) gin.HandlerFunc {
 		// Extract user information from the token
 		user, err := ExtractUserFromToken(token, config)
 		if err != nil {
+			slog.ErrorContext(c.Request.Context(), "Failed to extract user info from token", slog.Any("error", err))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to extract user info"})
 			c.Abort()
 			return
 		}
+
+		slog.InfoContext(c.Request.Context(), "User authenticated successfully", slog.String("user_id", user.ID))
 
 		// Store user in context
 		c.Set("user", user)
@@ -306,33 +290,6 @@ func ExtractUserFromToken(accessToken string, config *Config) (*User, error) {
 	return user, nil
 }
 
-// CreateValidator creates a JWT validator for token validation
-func CreateValidator(config *Config) (*validator.Validator, error) {
-	// Validate Auth0 configuration first
-	if err := validateAuth0Config(config); err != nil {
-		return nil, err
-	}
-
-	// Parse and validate the issuer URL
-	parsedIssuerURL, err := parseAndValidateAuth0URL(config.GetAuth0IssuerURL())
-	if err != nil {
-		return nil, fmt.Errorf("invalid Auth0 issuer URL: %v", err)
-	}
-
-	provider := jwks.NewCachingProvider(parsedIssuerURL, 5*time.Minute)
-	validator, err := validator.New(
-		provider.KeyFunc,
-		validator.RS256,
-		config.GetAuth0IssuerURL(),
-		[]string{config.GetAuth0Audience()},
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to set up the jwt validator: %v", err)
-	}
-
-	return validator, nil
-}
-
 // validateAuth0Config validates that all required Auth0 configuration is present
 func validateAuth0Config(config *Config) error {
 	if !config.IsAuth0Configured() {
@@ -345,20 +302,6 @@ func validateAuth0Config(config *Config) error {
 	}
 
 	return nil
-}
-
-// parseAndValidateAuth0URL parses and validates an Auth0 URL
-func parseAndValidateAuth0URL(urlString string) (*url.URL, error) {
-	parsedURL, err := url.Parse(urlString)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse URL '%s': %v", urlString, err)
-	}
-
-	if parsedURL.Host == "" {
-		return nil, fmt.Errorf("invalid URL format: '%s'. Expected format: 'https://your-tenant.auth0.com/'", urlString)
-	}
-
-	return parsedURL, nil
 }
 
 // buildAuth0URL builds a properly formatted Auth0 URL by ensuring no double slashes
