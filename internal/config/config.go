@@ -13,12 +13,23 @@ import (
 type Config struct {
 	Port     string `env:"PORT" default:"8080"`
 	LogLevel string `env:"LOG_LEVEL" default:"info"`
+	BaseURL  string `env:"BASE_URL" default:"http://localhost:8080"`
+
+	// Auth0 Configuration
+	Auth0Domain       string `env:"AUTH0_DOMAIN" default:""`
+	Auth0Audience     string `env:"AUTH0_AUDIENCE" default:""`
+	Auth0IssuerURL    string `env:"AUTH0_ISSUER_URL" default:""`
+	Auth0ClientID     string `env:"AUTH0_CLIENT_ID" default:""`
+	Auth0ClientSecret string `env:"AUTH0_CLIENT_SECRET" default:""`
 }
 
 // Load loads configuration from environment variables and .env file
 func Load() *Config {
 	// Load .env file if it exists (ignores error if file doesn't exist)
-	godotenv.Load()
+	err := godotenv.Load()
+	if err != nil {
+		slog.Warn("failed to load .env file")
+	}
 
 	config := &Config{}
 
@@ -93,6 +104,11 @@ func (c *Config) GetLogLevel() string {
 	return c.LogLevel
 }
 
+// GetBaseURL returns the configured base URL
+func (c *Config) GetBaseURL() string {
+	return c.BaseURL
+}
+
 // GetSlogLevel returns the slog.Level for the configured log level
 func (c *Config) GetSlogLevel() slog.Level {
 	switch c.LogLevel {
@@ -107,4 +123,69 @@ func (c *Config) GetSlogLevel() slog.Level {
 	default:
 		return slog.LevelInfo
 	}
+}
+
+// GetAuth0Domain returns the Auth0 domain
+func (c *Config) GetAuth0Domain() string {
+	return c.Auth0Domain
+}
+
+// GetAuth0Audience returns the Auth0 audience
+func (c *Config) GetAuth0Audience() string {
+	return c.Auth0Audience
+}
+
+// GetAuth0IssuerURL returns the Auth0 issuer URL
+func (c *Config) GetAuth0IssuerURL() string {
+	return c.Auth0IssuerURL
+}
+
+// GetAuth0ClientID returns the Auth0 client ID
+func (c *Config) GetAuth0ClientID() string {
+	return c.Auth0ClientID
+}
+
+// GetAuth0ClientSecret returns the Auth0 client secret
+func (c *Config) GetAuth0ClientSecret() string {
+	return c.Auth0ClientSecret
+}
+
+// IsAuth0Configured checks if Auth0 is properly configured
+func (c *Config) IsAuth0Configured() bool {
+	// Check if all required Auth0 fields are set
+	if c.Auth0Domain == "" {
+		slog.Error("AUTH0_DOMAIN is not set")
+		return false
+	}
+	if c.Auth0Audience == "" {
+		slog.Error("AUTH0_AUDIENCE is not set")
+		return false
+	}
+	if c.Auth0IssuerURL == "" {
+		slog.Error("AUTH0_ISSUER_URL is not set")
+		return false
+	}
+	if c.Auth0ClientID == "" {
+		slog.Error("AUTH0_CLIENT_ID is not set")
+		return false
+	}
+	if c.Auth0ClientSecret == "" {
+		slog.Error("AUTH0_CLIENT_SECRET is not set")
+		return false
+	}
+	return true
+}
+
+// Debug prints the current configuration values for debugging
+func (c *Config) Debug() {
+	slog.Info("Current configuration",
+		"port", c.Port,
+		"log_level", c.LogLevel,
+		"base_url", c.BaseURL,
+		"auth0_domain", c.Auth0Domain,
+		"auth0_audience", c.Auth0Audience,
+		"auth0_issuer_url", c.Auth0IssuerURL,
+		"auth0_client_id", c.Auth0ClientID,
+		"auth0_client_secret_set", c.Auth0ClientSecret != "",
+	)
 }

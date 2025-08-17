@@ -29,6 +29,52 @@ The backend is built with Go using the Gin framework and provides a simple HTTP 
 - `GET /` - Welcome message
 - `GET /health` - Health check endpoint
 
+### Authentication Endpoints
+
+The application now includes Auth0-based authentication with automatic redirects:
+
+- `GET /auth/login-page` - Simple HTML login page
+- `GET /auth/login` - Redirects to Auth0 login
+- `GET /auth/callback` - Handles Auth0 callback
+- `GET /auth/logout` - Redirects to Auth0 logout
+
+### Protected API Endpoints
+
+These endpoints require authentication and will redirect to login if unauthorized:
+
+- `GET /api/profile` - Get user profile (requires authentication)
+- `GET /api/me` - Get current user info (requires authentication)
+
+### Authentication Flow
+
+1. **Unauthorized Access**: When a user tries to access a protected endpoint without authentication, they are automatically redirected to the Auth0 login page
+2. **Login**: After successful login, users are redirected back to the original page they were trying to access
+3. **Session Management**: JWT tokens are validated on each request to protected endpoints
+4. **Logout**: Users can logout and are redirected to Auth0 logout page
+
+### Testing Authentication
+
+Use the provided test script to verify the authentication flow:
+
+```bash
+./test_auth.sh
+```
+
+Or test manually:
+
+```bash
+# Try to access protected endpoint (should redirect to login)
+curl -L $BASE_URL/api/me
+
+# View login page
+curl $BASE_URL/auth/login-page
+
+# Test login redirect
+curl -L $BASE_URL/auth/login
+```
+
+**Note**: Replace `$BASE_URL` with your actual base URL (e.g., `http://localhost:8081`)
+
 ### Testing the Health Endpoint
 
 ```bash
@@ -98,7 +144,27 @@ type Config struct {
 #### Environment Variables
 
 - `PORT` - Server port (defaults to 8080)
-- `LOG_LEVEL` - Log level (defaults to info)
+- `LOG_LEVEL` - Logging level (defaults to "info")
+- `BASE_URL` - Base URL for the application (defaults to "http://localhost:8080")
+
+#### Auth0 Configuration
+
+For authentication to work, you must configure the following environment variables:
+
+```bash
+# Copy the example file
+cp env.example .env
+
+# Edit with your Auth0 credentials
+BASE_URL=http://localhost:8080
+AUTH0_DOMAIN=your-tenant.auth0.com
+AUTH0_AUDIENCE=https://your-api-identifier
+AUTH0_ISSUER_URL=https://your-tenant.auth0.com/
+AUTH0_CLIENT_ID=your-client-id
+AUTH0_CLIENT_SECRET=your-client-secret
+```
+
+See `AUTH0_SETUP.md` for detailed setup instructions.
 
 #### Usage
 
@@ -142,53 +208,4 @@ The application uses Go's built-in `slog` package for structured logging with co
 - **Request Details**: Method, path, status, latency, IP, user agent, content length
 - **Error Logging**: Special error logging for 4xx and 5xx responses
 - **Request Tracing**: Unique request ID links all logs for a single request
-- **Context-Aware**: Uses `slog.InfoContext` and `slog.ErrorContext` for proper request linking
-
-#### Request ID System
-
-Every HTTP request gets a unique identifier for tracing:
-
-- **Automatic Generation**: 16-character hex string if not provided
-- **Custom Support**: Accepts `X-Request-ID` header for external tracing
-- **Response Header**: Returns `X-Request-ID` in response headers
-- **Log Linking**: All logs for a request share the same request ID
-- **Debugging**: Easy to trace requests through the entire system
-
-### Docker Commands
-
-- `make docker-build` - Build Docker image
-- `make docker-run` - Run container directly
-- `make docker-compose-up` - Start with Docker Compose
-- `make docker-compose-down` - Stop Docker Compose services
-- `make docker-compose-logs` - View logs
-- `make docker-clean` - Clean up Docker resources
-
-## Project Structure
-
-```
-vibed-traveller/
-├── cmd/
-│   └── main.go          # Application entry point
-├── internal/
-│   ├── config/
-│   │   └── config.go    # Configuration management
-│   └── routes/
-│       └── routes.go    # HTTP route definitions
-├── bin/                  # Build artifacts
-├── Dockerfile           # Container configuration
-├── docker-compose.yml   # Docker Compose setup
-├── Makefile             # Build and development commands
-└── README.md            # This file
-```
-
-### Package Organization
-
-- **`cmd/main.go`**: Application entry point that orchestrates the startup
-- **`internal/config`**: Configuration management and environment variable handling
-- **`internal/routes`**: HTTP route definitions and handlers using Gin framework
-- **`internal/middleware`**: HTTP middleware for logging, authentication, etc.
-- **`bin/`**: Compiled binary output directory
-
-## Frontend
-
-Coming soon...
+- **Context-Aware**: Uses `slog.InfoContext` and `slog.ErrorContext`

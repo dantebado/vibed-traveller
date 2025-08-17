@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"vibed-traveller/internal/config"
 	"vibed-traveller/internal/middleware"
 
 	"github.com/gin-gonic/gin"
@@ -20,7 +21,7 @@ type HealthResponse struct {
 }
 
 // SetupRoutes configures all the routes for the application
-func SetupRoutes() *gin.Engine {
+func SetupRoutes(cfg *config.Config) *gin.Engine {
 	// Set Gin to release mode for production
 	gin.SetMode(gin.ReleaseMode)
 
@@ -38,6 +39,9 @@ func SetupRoutes() *gin.Engine {
 
 	// Health check endpoint
 	r.GET("/health", healthHandler)
+
+	// Setup authenticated routes if Auth0 is configured
+	SetupAuthRoutes(r, cfg)
 
 	// Serve static files from dist directory
 	r.Static("/static", "./dist/static")
