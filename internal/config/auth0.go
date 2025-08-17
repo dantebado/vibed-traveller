@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -148,6 +149,16 @@ func AuthMiddleware(config *Config) gin.HandlerFunc {
 			return
 		}
 
+		// Validate JWT expiration
+		err := ValidateJWT(token, config)
+		if err != nil {
+			slog.ErrorContext(c.Request.Context(), "Invalid token", slog.Any("error", err))
+			// If token is invalid or expired, redirect to login
+			c.Redirect(http.StatusTemporaryRedirect, loginURL)
+			c.Abort()
+			return
+		}
+
 		// Extract user information from the token
 		user, err := ExtractUserFromToken(token, config)
 		if err != nil {
@@ -163,6 +174,50 @@ func AuthMiddleware(config *Config) gin.HandlerFunc {
 		c.Set("user", user)
 		c.Next()
 	}
+}
+
+func ValidateJWT(token string, config *Config) error {
+	// Parse JWT and validate expiration
+	// Split the token into parts (header.payload.signature)
+	parts := strings.Split(token, ".")
+	if len(parts) != 3 {
+		return fmt.Errorf("invalid JWT format: expected 3 parts, got %d", len(parts))
+	}
+
+	// Decode the payload (second part)
+	payload := parts[1]
+	// Add padding if needed for base64 decoding
+	if len(payload)%4 != 0 {
+		payload += strings.Repeat("=", 4-len(payload)%4)
+	}
+
+	// Decode base64
+	decodedPayload, err := base64.URLEncoding.DecodeString(payload)
+	if err != nil {
+		return fmt.Errorf("failed to decode JWT payload: %v", err)
+	}
+
+	// Parse the JSON payload
+	var claims struct {
+		Exp int64 `json:"exp"`
+		Iat int64 `json:"iat"`
+	}
+	if err := json.Unmarshal(decodedPayload, &claims); err != nil {
+		return fmt.Errorf("failed to parse JWT claims: %v", err)
+	}
+
+	// Check if token is expired
+	now := time.Now().Unix()
+	if claims.Exp > 0 && now > claims.Exp {
+		return fmt.Errorf("JWT token is expired: exp=%d, now=%d", claims.Exp, now)
+	}
+
+	// Check if token is issued in the future (clock skew tolerance)
+	if claims.Iat > 0 && now < claims.Iat-300 { // 5 minutes tolerance
+		return fmt.Errorf("JWT token issued in the future: iat=%d, now=%d", claims.Iat, now)
+	}
+
+	return nil
 }
 
 // GenerateAuth0LoginURL generates the Auth0 login URL with the current page as the return URL
