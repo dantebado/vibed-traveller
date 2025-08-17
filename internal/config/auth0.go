@@ -259,7 +259,7 @@ func ExtractUserFromToken(accessToken string, config *Config) (*User, error) {
 	}
 
 	// Call Auth0 userinfo endpoint to get user profile
-	userinfoURL := fmt.Sprintf("%s/userinfo", strings.TrimRight(config.GetAuth0IssuerURL(), "/"))
+	userinfoURL := fmt.Sprintf("%s/userinfo", config.GetAuth0IssuerURL())
 
 	req, err := http.NewRequest("GET", userinfoURL, nil)
 	if err != nil {
@@ -374,7 +374,7 @@ func buildAuth0URL(baseURL, path string) string {
 
 // buildCallbackURL builds the callback URL for Auth0
 func buildCallbackURL(config *Config) string {
-	return fmt.Sprintf("%s/auth/callback", config.ApiURL)
+	return fmt.Sprintf("%s/auth/callback", config.APIURL)
 }
 
 // GetUserFromContext extracts the authenticated user from Gin context

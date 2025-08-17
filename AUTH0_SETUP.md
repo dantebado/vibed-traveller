@@ -71,7 +71,7 @@ This guide will help you set up Auth0 authentication for your Go backend applica
    # Auth0 Configuration
    AUTH0_DOMAIN=your-tenant.auth0.com
    AUTH0_AUDIENCE=https://vibed-traveller-api
-   AUTH0_ISSUER_URL=https://your-tenant.auth0.com/
+   AUTH0_ISSUER_URL=https://your-tenant.auth0.com
    AUTH0_CLIENT_ID=your-client-id
    AUTH0_CLIENT_SECRET=your-client-secret
    ```
