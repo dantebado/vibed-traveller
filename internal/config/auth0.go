@@ -128,6 +128,8 @@ func AuthMiddleware(config *Config) gin.HandlerFunc {
 		// Extract token from Authorization header or cookie
 		var token string
 
+		loginURL := GenerateAuth0LoginURL(config, c.Request.URL.String())
+
 		// First try to get token from Authorization header
 		authHeader := c.GetHeader("Authorization")
 		if authHeader != "" && strings.HasPrefix(authHeader, "Bearer ") {
@@ -141,7 +143,6 @@ func AuthMiddleware(config *Config) gin.HandlerFunc {
 
 		if token == "" {
 			slog.InfoContext(c.Request.Context(), "No token found in header or cookie, redirecting to login")
-			loginURL := GenerateAuth0LoginURL(config, c.Request.URL.String())
 			c.Redirect(http.StatusTemporaryRedirect, loginURL)
 			c.Abort()
 			return
@@ -151,7 +152,7 @@ func AuthMiddleware(config *Config) gin.HandlerFunc {
 		user, err := ExtractUserFromToken(token, config)
 		if err != nil {
 			slog.ErrorContext(c.Request.Context(), "Failed to extract user info from token", slog.Any("error", err))
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to extract user info"})
+			c.Redirect(http.StatusTemporaryRedirect, loginURL)
 			c.Abort()
 			return
 		}
