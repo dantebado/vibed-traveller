@@ -53,6 +53,9 @@ func GetRequestID(c *gin.Context) string {
 // generateRequestID generates a random 16-byte hex string
 func generateRequestID() string {
 	bytes := make([]byte, 8)
-	rand.Read(bytes)
+	_, err := rand.Read(bytes)
+	if err != nil {
+		panic(err)
+	}
 	return hex.EncodeToString(bytes)
 }

@@ -19,8 +19,8 @@ func main() {
 	logger := slog.New(middleware.New(base))
 	slog.SetDefault(logger)
 
-	// Setup routes
-	r := routes.SetupRoutes()
+	// Setup routes with configuration
+	r := routes.SetupRoutes(cfg)
 
 	// Start server
 	slog.Info("Starting server", "port", cfg.GetPort())
