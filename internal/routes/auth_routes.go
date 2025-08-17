@@ -4,22 +4,10 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"time"
-
 	"vibed-traveller/internal/config"
 
 	"github.com/gin-gonic/gin"
 )
-
-// UserProfile represents a user's profile information
-type UserProfile struct {
-	ID        string            `json:"id"`
-	Email     string            `json:"email"`
-	Username  string            `json:"username"`
-	CreatedAt time.Time         `json:"created_at"`
-	UpdatedAt time.Time         `json:"updated_at"`
-	Metadata  map[string]string `json:"metadata,omitempty"`
-}
 
 // SetupAuthRoutes configures authenticated routes
 func SetupAuthRoutes(router *gin.Engine, cfg *config.Config) {
@@ -136,14 +124,5 @@ func getUserProfile(c *gin.Context) {
 		return
 	}
 
-	profile := UserProfile{
-		ID:        user.ID,
-		Email:     user.Email,
-		Username:  user.Username,
-		CreatedAt: time.Now(), // In a real app, this would come from a database
-		UpdatedAt: time.Now(),
-		Metadata:  user.Metadata,
-	}
-
-	c.JSON(http.StatusOK, profile)
+	c.JSON(http.StatusOK, user)
 }
