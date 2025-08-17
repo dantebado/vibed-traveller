@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"vibed-traveller/internal/config"
@@ -94,23 +95,28 @@ func handleAuth0Callback(c *gin.Context, cfg *config.Config) {
 		returnURL = "/"
 	}
 
+	slog.InfoContext(c.Request.Context(), "Callback called", slog.String("code", code))
+
 	// Exchange the authorization code for an access token
 	tokenResponse, err := config.ExchangeCodeForToken(cfg, code)
 	if err != nil {
+		slog.ErrorContext(c.Request.Context(), "Failed to exchange code for token", slog.Any("error", err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to exchange code for token", "details": err.Error()})
 		return
 	}
 
+	slog.InfoContext(c.Request.Context(), "ExchangeCodeForToken", slog.Any("token", tokenResponse))
+
 	// Extract the access token
 	accessToken, ok := tokenResponse["access_token"].(string)
 	if !ok {
+		slog.ErrorContext(c.Request.Context(), "Access token not found in response")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Access token not found in response"})
 		return
 	}
 
-	// Set a secure HTTP-only cookie with the access token
-	// In production, you might want to encrypt this token or use a session-based approach
 	config.SetAuthTokenCookie(c, accessToken)
+	slog.InfoContext(c.Request.Context(), "Token ready and cookie set")
 
 	// Redirect to the return URL
 	c.Redirect(http.StatusTemporaryRedirect, returnURL)
