@@ -10,6 +10,7 @@ import (
 	"vibed-traveller/internal/config"
 	"vibed-traveller/internal/middleware"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -27,6 +28,16 @@ func SetupRoutes(cfg *config.Config) *gin.Engine {
 
 	// Create Gin router (without default middleware)
 	r := gin.New()
+
+	// Setup CORS
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{cfg.GetBaseURL()},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	// Add request ID middleware first
 	r.Use(middleware.RequestIDMiddleware())

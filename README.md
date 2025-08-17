@@ -159,7 +159,7 @@ cp env.example .env
 BASE_URL=http://localhost:8080
 AUTH0_DOMAIN=your-tenant.auth0.com
 AUTH0_AUDIENCE=https://your-api-identifier
-AUTH0_ISSUER_URL=https://your-tenant.auth0.com/
+AUTH0_ISSUER_URL=https://your-tenant.auth0.com
 AUTH0_CLIENT_ID=your-client-id
 AUTH0_CLIENT_SECRET=your-client-secret
 ```

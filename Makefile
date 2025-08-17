@@ -30,10 +30,10 @@ stop:
 
 # Docker commands
 docker-build:
-	DOCKER_BUILDKIT=1 docker build --secret id=_env,src=frontend/env.example -t vibed-traveller-backend .
+	DOCKER_BUILDKIT=1 docker build --secret id=_env,src=frontend/.env -t vibed-traveller-backend .
 
 docker-run:
-	docker run -p 8080:8080 -e PORT=8080 vibed-traveller-backend
+	docker run -p 8080:8080 -e PORT=8080 --env-file .env vibed-traveller-backend
 
 docker-compose-up:
 	docker-compose up -d
