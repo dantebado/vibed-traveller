@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { AuthStatus } from '../types/user';
+import {AuthStatus, User} from '../types/user';
 import { api } from '../services/api';
 
 const Profile: React.FC = () => {
   const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
-  const [userProfile, setUserProfile] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -17,16 +17,7 @@ const Profile: React.FC = () => {
       setLoading(true);
       const status = await api.getAuthStatus();
       setAuthStatus(status);
-      
-      if (status.authenticated && status.user) {
-        // Try to get additional profile info
-        try {
-          const profile = await api.getUserProfile();
-          setUserProfile(profile);
-        } catch (profileError) {
-          console.warn('Could not fetch additional profile info:', profileError);
-        }
-      }
+      if (status.user) setUserProfile(status.user);
     } catch (err) {
       setError('Failed to check authentication status');
       console.error('Auth check failed:', err);

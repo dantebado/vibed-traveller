@@ -37,7 +37,7 @@ jobs:
         
       - name: Build Docker image
         run: |
-          docker build -t vibed-traveller:test .
+          DOCKER_BUILDKIT=1 docker build --secret id=_env,src=frontend/env.example -t vibed-traveller:test .
           
       - name: Verify image was created
         run: |
