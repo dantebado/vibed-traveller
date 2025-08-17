@@ -26,7 +26,10 @@ type Config struct {
 // Load loads configuration from environment variables and .env file
 func Load() *Config {
 	// Load .env file if it exists (ignores error if file doesn't exist)
-	godotenv.Load()
+	err := godotenv.Load()
+	if err != nil {
+		slog.Warn("failed to load .env file")
+	}
 
 	config := &Config{}
 

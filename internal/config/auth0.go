@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -223,7 +224,12 @@ func ExchangeCodeForToken(config *Config, code string) (map[string]interface{}, 
 	if err != nil {
 		return nil, fmt.Errorf("failed to make token request: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			slog.Error("failed to close response body: %v", slog.Any("err", err))
+		}
+	}(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
@@ -260,7 +266,12 @@ func ExtractUserFromToken(accessToken string, config *Config) (*User, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to call userinfo endpoint: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			slog.Error("failed to close response body: %v", slog.Any("err", err))
+		}
+	}(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
