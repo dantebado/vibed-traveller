@@ -95,21 +95,6 @@ func (c *Config) setFieldValue(field reflect.Value, value string) {
 	}
 }
 
-// GetPort returns the configured port
-func (c *Config) GetPort() string {
-	return c.Port
-}
-
-// GetLogLevel returns the configured log level
-func (c *Config) GetLogLevel() string {
-	return c.LogLevel
-}
-
-// GetBaseURL returns the configured base URL
-func (c *Config) GetBaseURL() string {
-	return c.BaseURL
-}
-
 // GetSlogLevel returns the slog.Level for the configured log level
 func (c *Config) GetSlogLevel() slog.Level {
 	switch c.LogLevel {
@@ -124,31 +109,6 @@ func (c *Config) GetSlogLevel() slog.Level {
 	default:
 		return slog.LevelInfo
 	}
-}
-
-// GetAuth0Domain returns the Auth0 domain
-func (c *Config) GetAuth0Domain() string {
-	return c.Auth0Domain
-}
-
-// GetAuth0Audience returns the Auth0 audience
-func (c *Config) GetAuth0Audience() string {
-	return c.Auth0Audience
-}
-
-// GetAuth0IssuerURL returns the Auth0 issuer URL
-func (c *Config) GetAuth0IssuerURL() string {
-	return c.Auth0IssuerURL
-}
-
-// GetAuth0ClientID returns the Auth0 client ID
-func (c *Config) GetAuth0ClientID() string {
-	return c.Auth0ClientID
-}
-
-// GetAuth0ClientSecret returns the Auth0 client secret
-func (c *Config) GetAuth0ClientSecret() string {
-	return c.Auth0ClientSecret
 }
 
 // IsAuth0Configured checks if Auth0 is properly configured

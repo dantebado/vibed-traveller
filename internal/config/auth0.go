@@ -193,7 +193,7 @@ func CreateValidator(config *Config) (*validator.Validator, error) {
 	}
 
 	// Parse and validate the issuer URL
-	parsedIssuerURL, err := parseAndValidateAuth0URL(config.GetAuth0IssuerURL())
+	parsedIssuerURL, err := parseAndValidateAuth0URL(config.Auth0IssuerURL)
 	if err != nil {
 		return nil, fmt.Errorf("invalid Auth0 issuer URL: %v", err)
 	}
@@ -205,7 +205,7 @@ func CreateValidator(config *Config) (*validator.Validator, error) {
 		provider.KeyFunc,
 		validator.RS256,
 		expectedIssuer,
-		[]string{config.GetAuth0Audience()},
+		[]string{config.Auth0Audience},
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to set up the jwt validator: %v", err)
@@ -234,18 +234,18 @@ func GenerateAuth0LoginURL(config *Config, returnURL string) string {
 	encodedReturnURL := url.QueryEscape(returnURL)
 
 	// Build the Auth0 authorize URL
-	authorizeURL := buildAuth0URL(config.GetAuth0IssuerURL(), Auth0AuthorizePath)
+	authorizeURL := buildAuth0URL(config.Auth0IssuerURL, Auth0AuthorizePath)
 
 	// Build the Auth0 login URL using authorization code flow
 	loginURL := fmt.Sprintf("%s?response_type=%s&client_id=%s&redirect_uri=%s&scope=%s%%20%s%%20%s&audience=%s",
 		authorizeURL,
 		Auth0ResponseTypeCode,
-		config.GetAuth0ClientID(),
+		config.Auth0ClientID,
 		url.QueryEscape(buildCallbackURL(config)),
 		Auth0ScopeOpenID,
 		Auth0ScopeProfile,
 		Auth0ScopeEmail,
-		url.QueryEscape(config.GetAuth0Audience()),
+		url.QueryEscape(config.Auth0Audience),
 	)
 
 	// Add the return URL as a state parameter
@@ -259,13 +259,13 @@ func ExchangeCodeForToken(config *Config, code string) (map[string]interface{}, 
 	// Prepare the token exchange request
 	data := url.Values{}
 	data.Set("grant_type", Auth0GrantTypeAuthorizationCode)
-	data.Set("client_id", config.GetAuth0ClientID())
-	data.Set("client_secret", config.GetAuth0ClientSecret())
+	data.Set("client_id", config.Auth0ClientID)
+	data.Set("client_secret", config.Auth0ClientSecret)
 	data.Set("code", code)
 	data.Set("redirect_uri", buildCallbackURL(config))
 
 	// Build the Auth0 token URL
-	tokenURL := buildAuth0URL(config.GetAuth0IssuerURL(), Auth0TokenPath)
+	tokenURL := buildAuth0URL(config.Auth0IssuerURL, Auth0TokenPath)
 
 	req, err := http.NewRequest("POST", tokenURL, strings.NewReader(data.Encode()))
 	if err != nil {
@@ -307,7 +307,7 @@ func ExtractUserFromToken(accessToken string, config *Config) (*User, error) {
 	}
 
 	// Call Auth0 userinfo endpoint to get user profile
-	userinfoURL := fmt.Sprintf("%s/userinfo", config.GetAuth0IssuerURL())
+	userinfoURL := fmt.Sprintf("%s/userinfo", config.Auth0IssuerURL)
 
 	req, err := http.NewRequest("GET", userinfoURL, nil)
 	if err != nil {
@@ -360,7 +360,7 @@ func validateAuth0Config(config *Config) error {
 		return fmt.Errorf("Auth0 configuration is missing. Please check your environment variables")
 	}
 
-	issuerURL := config.GetAuth0IssuerURL()
+	issuerURL := config.Auth0IssuerURL
 	if issuerURL == "" {
 		return fmt.Errorf("AUTH0_ISSUER_URL environment variable is not set or is empty")
 	}

@@ -44,9 +44,9 @@ func SetupAuthRoutes(router *gin.Engine, cfg *config.Config) {
 
 			// Redirect to Auth0 logout
 			logoutURL := fmt.Sprintf("%s/v2/logout?client_id=%s&returnTo=%s",
-				cfg.GetAuth0IssuerURL(),
-				cfg.GetAuth0ClientID(),
-				url.QueryEscape(cfg.GetBaseURL()),
+				cfg.Auth0IssuerURL,
+				cfg.Auth0ClientID,
+				url.QueryEscape(cfg.BaseURL),
 			)
 			c.Redirect(http.StatusTemporaryRedirect, logoutURL)
 		})

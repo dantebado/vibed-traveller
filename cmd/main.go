@@ -23,8 +23,8 @@ func main() {
 	r := routes.SetupRoutes(cfg)
 
 	// Start server
-	slog.Info("Starting server", "port", cfg.GetPort())
-	if err := r.Run(":" + cfg.GetPort()); err != nil {
+	slog.Info("Starting server", "port", cfg.Port)
+	if err := r.Run(":" + cfg.Port); err != nil {
 		slog.Error("Server failed to start", "error", err)
 		os.Exit(1)
 	}
