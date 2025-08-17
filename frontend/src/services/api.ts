@@ -1,4 +1,4 @@
-import { AuthStatus, User } from '../types/user';
+import { AuthStatus } from '../types/user';
 import { getApiUrl } from '../config/app';
 
 const API_BASE_URL = getApiUrl();

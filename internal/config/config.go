@@ -13,7 +13,8 @@ import (
 type Config struct {
 	Port     string `env:"PORT" default:"8080"`
 	LogLevel string `env:"LOG_LEVEL" default:"info"`
-	BaseURL  string `env:"BASE_URL" default:"http://localhost:8080"`
+	BaseURL  string `env:"BASE_URL" default:"http://localhost:3000"`
+	ApiURL   string `env:"API_URL" default:"http://localhost:8080"`
 
 	// Auth0 Configuration
 	Auth0Domain       string `env:"AUTH0_DOMAIN" default:""`

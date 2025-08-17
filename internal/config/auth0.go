@@ -374,7 +374,7 @@ func buildAuth0URL(baseURL, path string) string {
 
 // buildCallbackURL builds the callback URL for Auth0
 func buildCallbackURL(config *Config) string {
-	return fmt.Sprintf("%s/auth/callback", config.GetBaseURL())
+	return fmt.Sprintf("%s/auth/callback", config.ApiURL)
 }
 
 // GetUserFromContext extracts the authenticated user from Gin context
