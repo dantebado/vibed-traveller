@@ -8,7 +8,7 @@ WORKDIR /frontend
 COPY frontend/package*.json ./
 
 # If there is a /etc/secrets/.env file copy it to the frontend directory
-RUN cat /etc/secrets/.env
+RUN ls /etc/secrets
 
 # Install frontend dependencies
 RUN npm ci --only=production
