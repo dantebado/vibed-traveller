@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"log/slog"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -10,6 +11,11 @@ import (
 // RequestLoggingMiddleware creates a custom middleware for detailed request logging
 func RequestLoggingMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		if strings.HasPrefix(c.Request.URL.Path, "/.well-known/") {
+			c.Next()
+			return
+		}
+
 		// Log request start
 		slog.InfoContext(c.Request.Context(), "HTTP Request Started",
 			"method", c.Request.Method,
