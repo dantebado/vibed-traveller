@@ -65,6 +65,18 @@ const (
 	Auth0ScopeEmail = "email"
 )
 
+type Auth0UserInfo struct {
+	Sub           string     `json:"sub"`
+	GivenName     string     `json:"given_name"`
+	FamilyName    string     `json:"family_name"`
+	Nickname      string     `json:"nickname"`
+	Name          string     `json:"name"`
+	Picture       string     `json:"picture"`
+	UpdatedAt     *time.Time `json:"updated_at"`
+	Email         string     `json:"email"`
+	EmailVerified bool       `json:"email_verified"`
+}
+
 // SetAuthTokenCookie sets the authentication token cookie with the configured settings
 func SetAuthTokenCookie(c *gin.Context, token string) {
 	c.SetCookie(
@@ -118,9 +130,9 @@ func AuthMiddleware(config *Config) gin.HandlerFunc {
 		panic(err.Error())
 	}
 
-	validator, err := CreateValidator(config)
+	createdValidator, err := CreateValidator(config)
 	if err != nil {
-		panic(fmt.Sprintf("Failed to set up the jwt validator: %v", err))
+		panic(fmt.Sprintf("Failed to set up the jwt createdValidator: %v", err))
 	}
 
 	return func(c *gin.Context) {
@@ -131,11 +143,9 @@ func AuthMiddleware(config *Config) gin.HandlerFunc {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader != "" && strings.HasPrefix(authHeader, "Bearer ") {
 			token = strings.TrimPrefix(authHeader, "Bearer ")
-		} else {
-			// If no Authorization header, try to get token from cookie
-			if cookieToken, err := GetAuthTokenFromCookie(c); err == nil {
-				token = cookieToken
-			}
+		}
+		if cookieToken, err := GetAuthTokenFromCookie(c); err == nil {
+			token = cookieToken
 		}
 
 		if token == "" {
@@ -147,7 +157,7 @@ func AuthMiddleware(config *Config) gin.HandlerFunc {
 		}
 
 		// Validate the token
-		_, err := validator.ValidateToken(context.Background(), token)
+		_, err := createdValidator.ValidateToken(context.Background(), token)
 		if err != nil {
 			// Clear the invalid cookie if it exists
 			ClearAuthTokenCookie(c)
@@ -276,18 +286,6 @@ func ExtractUserFromToken(accessToken string, config *Config) (*User, error) {
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("userinfo endpoint returned status %d: %s", resp.StatusCode, string(body))
-	}
-
-	type Auth0UserInfo struct {
-		Sub           string     `json:"sub"`
-		GivenName     string     `json:"given_name"`
-		FamilyName    string     `json:"family_name"`
-		Nickname      string     `json:"nickname"`
-		Name          string     `json:"name"`
-		Picture       string     `json:"picture"`
-		UpdatedAt     *time.Time `json:"updated_at"`
-		Email         string     `json:"email"`
-		EmailVerified bool       `json:"email_verified"`
 	}
 
 	var auth0UserInfo Auth0UserInfo
