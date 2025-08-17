@@ -30,7 +30,7 @@ stop:
 
 # Docker commands
 docker-build:
-	docker build -t vibed-traveller-backend .
+	DOCKER_BUILDKIT=1 docker build --secret id=_env,src=frontend/env.example -t vibed-traveller-backend .
 
 docker-run:
 	docker run -p 8080:8080 -e PORT=8080 vibed-traveller-backend
