@@ -17,9 +17,6 @@ import (
 )
 
 // Cookie configuration constants
-// These can be modified for different environments:
-// - Development: AuthTokenCookieSecure = false
-// - Production: AuthTokenCookieSecure = true (requires HTTPS)
 const (
 	// AuthTokenCookieName is the name of the cookie that stores the authentication token
 	AuthTokenCookieName = "auth_token"
