@@ -28,7 +28,7 @@ export const api = {
 
   // Login redirect
   login(): void {
-    window.location.href = `${API_BASE_URL}/auth/login`;
+    window.location.href = `${API_BASE_URL}/auth/login?return_url=${window.location.href}`;
   },
 
   // Logout
