@@ -1,3 +1,5 @@
+# syntax = docker/dockerfile:1.2
+
 # Build stage for frontend
 FROM node:18-alpine AS frontend-builder
 
@@ -8,7 +10,7 @@ WORKDIR /frontend
 COPY frontend/package*.json ./
 
 # If there is a /etc/secrets/.env file copy it to the frontend directory
-RUN ls /etc/secrets
+RUN --mount=type=secret,id=_env,dst=/etc/secrets/.env cat /etc/secrets/.env
 
 # Install frontend dependencies
 RUN npm ci --only=production
